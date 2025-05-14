@@ -1,0 +1,16 @@
+package org.farmsystem.sotserver.global.common;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RequiredArgsConstructor
+@RestController
+public class HealthCheckController {
+
+    @RequestMapping("/")
+    public String SotServer() {
+        return "Hello! Sot Server!";
+    }
+
+}
