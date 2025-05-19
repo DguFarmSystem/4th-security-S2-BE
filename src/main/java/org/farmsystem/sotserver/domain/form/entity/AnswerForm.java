@@ -1,11 +1,18 @@
 package org.farmsystem.sotserver.domain.form.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.farmsystem.sotserver.domain.user.entity.User;
 import org.farmsystem.sotserver.global.common.BaseTimeEntity;
 
-import java.time.LocalDateTime;
-
+@AllArgsConstructor
+@Builder
+@Getter
+@NoArgsConstructor
+@Table(name = "answer_form")
 @Entity
 public class AnswerForm extends BaseTimeEntity {
     @Id
@@ -13,8 +20,6 @@ public class AnswerForm extends BaseTimeEntity {
 
     @Enumerated(EnumType.STRING)
     private FormStatus formStatus;
-
-    private LocalDateTime submittedAt;
 
     @ManyToOne
     @JoinColumn(name = "form_id")
