@@ -1,4 +1,4 @@
-package org.farmsystem.sotserver.domain.comment;
+package org.farmsystem.sotserver.domain.comment.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
