@@ -20,11 +20,11 @@ import java.util.Map;
 @Getter
 @Component
 public class JwtProvider {
-    @Value("${jwt.secret}")
+    @Value("${spring.jwt.secret}")
     private String secretKey;
-    @Value("${jwt.access-token-expire-time}")
+    @Value("${spring.jwt.access-token-expire-time}")
     private long ACCESS_TOKEN_EXPIRE_TIME;
-    @Value("${jwt.refresh-token-expire-time}")
+    @Value("${spring.jwt.refresh-token-expire-time}")
     private long REFRESH_TOKEN_EXPIRE_TIME;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
