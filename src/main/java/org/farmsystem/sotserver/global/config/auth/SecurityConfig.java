@@ -2,6 +2,7 @@ package org.farmsystem.sotserver.global.config.auth;
 
 import lombok.RequiredArgsConstructor;
 
+import org.farmsystem.sotserver.domain.user.repository.UserRepository;
 import org.farmsystem.sotserver.global.config.CorsConfig;
 import org.farmsystem.sotserver.global.config.auth.jwt.JwtAuthenticationEntryPoint;
 import org.farmsystem.sotserver.global.config.auth.jwt.JwtAuthenticationFilter;
@@ -23,6 +24,7 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final CorsConfig corsConfig;
     private final JwtProvider jwtProvider;
+    private final UserRepository userRepository;
 
     // 토큰 없이 접근 가능한 URL
     private static final String[] whiteList = {"/",
@@ -48,7 +50,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
                         authorizationManagerRequestMatcherRegistry.anyRequest().authenticated())
                 .addFilter(corsConfig.corsFilter())
-                .addFilterBefore(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JwtAuthenticationFilter(jwtProvider, userRepository), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(new ExceptionHandlerFilter(), JwtAuthenticationFilter.class)
                 .build();
     }
