@@ -4,10 +4,12 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-
+import org.farmsystem.sotserver.domain.user.entity.User;
+import org.farmsystem.sotserver.domain.user.repository.UserRepository;
+import org.farmsystem.sotserver.global.config.auth.CustomUserDetails;
 import org.farmsystem.sotserver.global.config.auth.UserAuthentication;
 import org.farmsystem.sotserver.global.error.ErrorCode;
+import org.farmsystem.sotserver.global.error.exception.BusinessException;
 import org.farmsystem.sotserver.global.error.exception.UnauthorizedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -16,11 +18,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-@RequiredArgsConstructor
+import static org.farmsystem.sotserver.global.error.ErrorCode.USER_NOT_FOUND;
+
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String AUTHORIZATION = "Authorization";
     private static final String BEARER = "Bearer ";
     private final JwtProvider jwtProvider;
+    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -40,8 +44,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private void setAuthentication(HttpServletRequest request, Long userId) {
-        UserAuthentication authentication = new UserAuthentication(userId, null, null);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
+        CustomUserDetails userDetails = new CustomUserDetails(user);
+        UserAuthentication authentication = new UserAuthentication(
+                userDetails,
+                null,
+                userDetails.getAuthorities()
+        );
         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
+
+    public JwtAuthenticationFilter(JwtProvider jwtProvider, UserRepository userRepository) {
+        this.jwtProvider = jwtProvider;
+        this.userRepository = userRepository;
+    }
+
 }

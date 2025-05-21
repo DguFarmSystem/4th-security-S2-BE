@@ -18,12 +18,14 @@ public class User {
     private String imageUrl;
 
     @Enumerated(EnumType.STRING)
-    private UserStatus userStatus;
+    private Role role;
 
-    public User(String socialId, String imageUrl, UserStatus userStatus) {
+    public User(String socialId, String imageUrl, Role role) {
         this.socialId = socialId;
         this.imageUrl = imageUrl;
-        this.userStatus = userStatus;
+        this.role = role;
     }
+
+
 }
 
