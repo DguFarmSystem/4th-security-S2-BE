@@ -49,7 +49,23 @@ public enum ErrorCode {
     /**
      * 500 Internal Server Error
      */
-    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류입니다.");
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류입니다."),
+
+    /**
+     * Oauth Error
+     */
+    OAUTH_TOKEN_REQUEST_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "OAuth 토큰 요청에 실패하였습니다."),
+    OAUTH_USER_RESOURCE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "OAuth 사용자 정보 조회에 실패하였습니다."),
+    JSON_PARSING_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "JSON 파싱에 실패하였습니다."),
+
+    /**
+     * User Error
+     */
+    AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "사용자 인증에 실패하였습니다."),
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
+    USER_ALREADY_EXISTS(HttpStatus.CONFLICT, "다른 소셜 계정으로 이미 가입된 사용자입니다."),
+
+    ;
 
     private final HttpStatus httpStatus;
     private final String message;
