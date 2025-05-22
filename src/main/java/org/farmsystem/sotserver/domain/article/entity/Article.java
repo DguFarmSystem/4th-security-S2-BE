@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.farmsystem.sotserver.domain.form.entity.FormStatus;
 import org.farmsystem.sotserver.domain.user.entity.User;
 import org.farmsystem.sotserver.global.common.BaseTimeEntity;
 
@@ -13,18 +12,23 @@ import org.farmsystem.sotserver.global.common.BaseTimeEntity;
 @Builder
 @Getter
 @NoArgsConstructor
-@Table(name = "article")
+@Table(name = "articles")
 @Entity
 public class Article extends BaseTimeEntity {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long articleId;
 
-    @Enumerated(EnumType.STRING)
-    private FormStatus formStatus;
+    private String title;
 
-    @ManyToOne
+    private String content;
+
+    @Enumerated(EnumType.STRING)
+    private ArticleStatus status = ArticleStatus.OPEN;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    private User user;
+    private User author;
 
 }
