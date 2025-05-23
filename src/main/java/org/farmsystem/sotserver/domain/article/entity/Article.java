@@ -8,6 +8,9 @@ import lombok.NoArgsConstructor;
 import org.farmsystem.sotserver.domain.user.entity.User;
 import org.farmsystem.sotserver.global.common.BaseTimeEntity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @AllArgsConstructor
 @Builder
 @Getter
@@ -31,4 +34,16 @@ public class Article extends BaseTimeEntity {
     @JoinColumn(name = "user_id")
     private User author;
 
+    @Builder.Default
+    @OneToMany(mappedBy = "article", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Image> images = new ArrayList<>();
+
+    public void update(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
+
+    public void changeStatus(ArticleStatus status) {
+        this.status = status;
+    }
 }
