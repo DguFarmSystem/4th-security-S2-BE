@@ -8,6 +8,10 @@ import org.farmsystem.sotserver.domain.article.dto.ArticleStatusRequest;
 import org.farmsystem.sotserver.domain.article.service.ArticleService;
 import org.farmsystem.sotserver.global.common.SuccessResponse;
 import org.farmsystem.sotserver.global.config.auth.CustomUserDetails;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -70,5 +74,18 @@ public class ArticleController {
         Long userId = userDetails.getUserId();
         articleService.deleteArticle(articleId, userId);
         return SuccessResponse.noContent(); // ✅ 204 No Content
+    }
+
+    @GetMapping
+    public ResponseEntity<SuccessResponse<?>> getArticles(
+            @PageableDefault(size = 10, sort = "articleId", direction = Sort.Direction.DESC) Pageable pageable){
+        Page<ArticleResponse> articles = articleService.getArticles(pageable);
+        return SuccessResponse.ok(articles);
+    }
+
+    @GetMapping("/{articleId}")
+    public ResponseEntity<SuccessResponse<?>> getArticle(@PathVariable Long articleId) {
+        ArticleResponse response = articleService.getArticle(articleId);
+        return SuccessResponse.ok(response);
     }
 }

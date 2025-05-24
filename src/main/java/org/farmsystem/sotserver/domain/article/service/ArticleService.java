@@ -12,6 +12,8 @@ import org.farmsystem.sotserver.domain.article.repository.ImageRepository;
 import org.farmsystem.sotserver.domain.user.entity.User;
 import org.farmsystem.sotserver.domain.user.repository.UserRepository;
 import org.farmsystem.sotserver.global.s3.S3Uploader;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -44,7 +46,7 @@ public class ArticleService {
 
         Article saved = articleRepository.save(article);
 
-        return ArticleResponse.from(article);
+        return ArticleResponse.from(saved, s3Uploader);
     }
 
     @Transactional
@@ -58,16 +60,18 @@ public class ArticleService {
 
         article.update(request.getTitle(), request.getContent());
 
+        // S3에서 이미지 삭제
         List<Image> toDelete = new ArrayList<>(article.getImages());
         for (Image image : toDelete){
-            s3Uploader.delete(image.getImageUrl());
+            s3Uploader.delete(image.getKey());
         }
 
-        // 기존 이미지 삭제 후 새 이미지 등록
+        // DB 이미지 삭제 후 S3 새 이미지 등록
         imageRepository.deleteAllByArticle(article);
+        article.getImages().clear();
         uploadImages(article, images);
 
-        return ArticleResponse.from(article);
+        return ArticleResponse.from(article, s3Uploader);
     }
 
     @Transactional
@@ -81,7 +85,7 @@ public class ArticleService {
 
         article.changeStatus(request.getStatus());
 
-        return ArticleResponse.from(article);
+        return ArticleResponse.from(article, s3Uploader);
     }
 
     @Transactional
@@ -95,11 +99,24 @@ public class ArticleService {
 
         List<Image> toDelete = new ArrayList<>(article.getImages());
         for (Image image : toDelete){
-            s3Uploader.delete(image.getImageUrl());
+            s3Uploader.delete(image.getKey());
         }
 
         imageRepository.deleteAllByArticle(article);
         articleRepository.delete(article);
+    }
+
+    @Transactional(readOnly = true)
+    public ArticleResponse getArticle(Long articleId){
+        Article article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
+        return ArticleResponse.from(article, s3Uploader);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ArticleResponse> getArticles(Pageable pageable){
+        return articleRepository.findAll(pageable)
+                .map(article -> ArticleResponse.from(article, s3Uploader));
     }
 
     private void uploadImages(Article article, List<MultipartFile> images) {
@@ -107,8 +124,9 @@ public class ArticleService {
 
         for (MultipartFile file : images) {
             try {
-                String imageUrl = s3Uploader.upload(file, "articles");
-                Image image = new Image(imageUrl, article);
+                if (file == null || file.isEmpty()) continue;
+                String key = s3Uploader.upload(file, "articles");
+                Image image = new Image(key, article);
                 article.getImages().add(image);
             } catch (IOException e) {
                 throw new RuntimeException("이미지 업로드 실패", e);

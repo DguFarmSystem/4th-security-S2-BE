@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.farmsystem.sotserver.domain.article.entity.Article;
 import org.farmsystem.sotserver.domain.article.entity.ArticleStatus;
-import org.farmsystem.sotserver.domain.article.entity.Image;
+import org.farmsystem.sotserver.global.s3.S3Uploader;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,7 +21,7 @@ public class ArticleResponse {
     LocalDateTime updateAt;
     List<String> imageUrls;
 
-    public static ArticleResponse from(Article article) {
+    public static ArticleResponse from(Article article, S3Uploader s3Uploader) {
         return new ArticleResponse(
                 article.getArticleId(),
                 article.getTitle(),
@@ -31,7 +31,7 @@ public class ArticleResponse {
                 article.getCreatedAt(),
                 article.getUpdatedAt(),
                 article.getImages().stream()
-                        .map(Image::getImageUrl)
+                        .map(img -> s3Uploader.getFileUrl(img.getKey()))
                         .toList()
         );
     }

@@ -13,14 +13,14 @@ public class Image {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String imageUrl;
+    private String key;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "article_id")
     private Article article;
 
-    public Image(String imageUrl, Article article) {
-        this.imageUrl = imageUrl;
+    public Image(String key, Article article) {
+        this.key = key;
         this.article = article;
     }
 }

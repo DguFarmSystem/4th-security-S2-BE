@@ -18,10 +18,11 @@ import org.farmsystem.sotserver.global.common.BaseTimeEntity;
 public class Comment extends BaseTimeEntity {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long commentId;
     private String content;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "article_id")
     private Article article;
 

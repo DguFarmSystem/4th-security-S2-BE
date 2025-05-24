@@ -1,7 +1,6 @@
 package org.farmsystem.sotserver.global.s3;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import lombok.RequiredArgsConstructor;
@@ -26,23 +25,26 @@ public class S3Uploader {
     @Value("${cloud.aws.region.static}")
     private String region;
 
+    // s3에 이미지 업로드 후 key 반환
     public String upload(MultipartFile multipartFile, String dirName) throws IOException {
         String originalFileName = multipartFile.getOriginalFilename();
-        String fileName = dirName + "/" + UUID.randomUUID() + "_" + originalFileName;
+        String key = dirName + "/" + UUID.randomUUID() + "_" + originalFileName;
 
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentLength(multipartFile.getSize());
         metadata.setContentType(multipartFile.getContentType());
 
-        amazonS3.putObject(new PutObjectRequest(bucket, fileName, multipartFile.getInputStream(), metadata));
+        amazonS3.putObject(new PutObjectRequest(bucket, key, multipartFile.getInputStream(), metadata));
 
-        return amazonS3.getUrl(bucket, fileName).toString();
+        return key;
     }
 
-    public void delete(String imageUrl) {
-        String bucketUrl = "https://" + bucket + ".s3." + region + ".amazonaws.com/";
-        String key = imageUrl.replace(bucketUrl, "");
+    // key로 URL 반환
+    public String getFileUrl(String key){
+        return amazonS3.getUrl(bucket, key).toString();
+    }
 
+    public void delete(String key) {
         log.info("Deleting S3 file: {}", key);
         amazonS3.deleteObject(bucket, key);
     }
