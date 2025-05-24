@@ -11,18 +11,18 @@ import java.util.List;
 
 @Getter
 @AllArgsConstructor
-public class ArticleResponse {
+public class ArticleCreateResponse {
     private Long id;
     private String title;
     private String content;
     private Long userId;
     private ArticleStatus status;
-    LocalDateTime createAt;
-    LocalDateTime updateAt;
-    List<String> imageUrls;
+    private LocalDateTime createAt;
+    private LocalDateTime updateAt;
+    private List<String> imageUrls;
 
-    public static ArticleResponse from(Article article, S3Uploader s3Uploader) {
-        return new ArticleResponse(
+    public static ArticleCreateResponse from(Article article, S3Uploader s3Uploader) {
+        return new ArticleCreateResponse(
                 article.getArticleId(),
                 article.getTitle(),
                 article.getContent(),

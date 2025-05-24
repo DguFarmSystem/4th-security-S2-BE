@@ -1,14 +1,15 @@
 package org.farmsystem.sotserver.domain.article.service;
 
 import lombok.RequiredArgsConstructor;
-import org.farmsystem.sotserver.domain.article.dto.ArticleCreateRequest;
-import org.farmsystem.sotserver.domain.article.dto.ArticleResponse;
-import org.farmsystem.sotserver.domain.article.dto.ArticleStatusRequest;
+import org.farmsystem.sotserver.domain.article.dto.*;
 import org.farmsystem.sotserver.domain.article.entity.Article;
 import org.farmsystem.sotserver.domain.article.entity.ArticleStatus;
 import org.farmsystem.sotserver.domain.article.entity.Image;
 import org.farmsystem.sotserver.domain.article.repository.ArticleRepository;
 import org.farmsystem.sotserver.domain.article.repository.ImageRepository;
+import org.farmsystem.sotserver.domain.comment.dto.CommentResponse;
+import org.farmsystem.sotserver.domain.comment.entity.Comment;
+import org.farmsystem.sotserver.domain.comment.repository.CommentRepository;
 import org.farmsystem.sotserver.domain.user.entity.User;
 import org.farmsystem.sotserver.domain.user.repository.UserRepository;
 import org.farmsystem.sotserver.global.s3.S3Uploader;
@@ -30,8 +31,9 @@ public class ArticleService {
     private final UserRepository userRepository;
     private final ImageRepository imageRepository;
     private final S3Uploader s3Uploader;
+    private final CommentRepository commentRepository;
 
-    public ArticleResponse createArticle(Long userId, List<MultipartFile> images, ArticleCreateRequest request){
+    public ArticleCreateResponse createArticle(Long userId, List<MultipartFile> images, ArticleCreateRequest request){
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저가 존재하지 않습니다."));
 
@@ -46,11 +48,11 @@ public class ArticleService {
 
         Article saved = articleRepository.save(article);
 
-        return ArticleResponse.from(saved, s3Uploader);
+        return ArticleCreateResponse.from(saved, s3Uploader);
     }
 
     @Transactional
-    public ArticleResponse updateArticle(Long articleId, Long userId, List<MultipartFile> images, ArticleCreateRequest request){
+    public ArticleCreateResponse updateArticle(Long articleId, Long userId, List<MultipartFile> images, ArticleCreateRequest request){
         Article article = articleRepository.findById(articleId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
 
@@ -71,11 +73,11 @@ public class ArticleService {
         article.getImages().clear();
         uploadImages(article, images);
 
-        return ArticleResponse.from(article, s3Uploader);
+        return ArticleCreateResponse.from(article, s3Uploader);
     }
 
     @Transactional
-    public ArticleResponse changeStatus(Long articleId, Long userId, ArticleStatusRequest request){
+    public ArticleCreateResponse changeStatus(Long articleId, Long userId, ArticleStatusRequest request){
         Article article = articleRepository.findById(articleId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
 
@@ -85,7 +87,7 @@ public class ArticleService {
 
         article.changeStatus(request.getStatus());
 
-        return ArticleResponse.from(article, s3Uploader);
+        return ArticleCreateResponse.from(article, s3Uploader);
     }
 
     @Transactional
@@ -107,16 +109,26 @@ public class ArticleService {
     }
 
     @Transactional(readOnly = true)
-    public ArticleResponse getArticle(Long articleId){
+    public ArticleDetailResponse getArticle(Long articleId){
         Article article = articleRepository.findById(articleId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
-        return ArticleResponse.from(article, s3Uploader);
+
+        //댓글 가져오기
+        List<Comment> commentList = commentRepository.findByArticle_ArticleId(articleId);
+        List<CommentResponse> commentResponses = commentList.stream()
+                .map(CommentResponse::from)
+                .toList();
+
+        return ArticleDetailResponse.from(article, s3Uploader, commentResponses);
     }
 
     @Transactional(readOnly = true)
-    public Page<ArticleResponse> getArticles(Pageable pageable){
-        return articleRepository.findAll(pageable)
-                .map(article -> ArticleResponse.from(article, s3Uploader));
+    public Page<ArticleListResponse> getArticles(Pageable pageable){
+        Page<Article> page = articleRepository.findAll(pageable);
+        return page.map(article -> {
+            int commentCount = commentRepository.countByArticle_ArticleId(article.getArticleId());
+            return ArticleListResponse.from(article, s3Uploader, commentCount);
+        });
     }
 
     private void uploadImages(Article article, List<MultipartFile> images) {

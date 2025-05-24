@@ -2,9 +2,7 @@ package org.farmsystem.sotserver.domain.article.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.farmsystem.sotserver.domain.article.dto.ArticleCreateRequest;
-import org.farmsystem.sotserver.domain.article.dto.ArticleResponse;
-import org.farmsystem.sotserver.domain.article.dto.ArticleStatusRequest;
+import org.farmsystem.sotserver.domain.article.dto.*;
 import org.farmsystem.sotserver.domain.article.service.ArticleService;
 import org.farmsystem.sotserver.global.common.SuccessResponse;
 import org.farmsystem.sotserver.global.config.auth.CustomUserDetails;
@@ -36,7 +34,7 @@ public class ArticleController {
             @RequestPart(value = "images", required = false) List<MultipartFile> images
             ) {
         Long userId = userDetails.getUserId();
-        ArticleResponse response = articleService.createArticle(userId, images, request);
+        ArticleCreateResponse response = articleService.createArticle(userId, images, request);
         return SuccessResponse.created(response);
     }
 
@@ -49,7 +47,7 @@ public class ArticleController {
             @RequestPart(value = "images", required = false) List<MultipartFile> images
     ) {
         Long userId = userDetails.getUserId();
-        ArticleResponse response = articleService.updateArticle(articleId, userId, images, request);
+        ArticleCreateResponse response = articleService.updateArticle(articleId, userId, images, request);
         return SuccessResponse.ok(response);
     }
 
@@ -61,7 +59,7 @@ public class ArticleController {
             @RequestBody @Valid ArticleStatusRequest request
     ) {
         Long userId = userDetails.getUserId();
-        ArticleResponse response = articleService.changeStatus(articleId, userId, request);
+        ArticleCreateResponse response = articleService.changeStatus(articleId, userId, request);
         return SuccessResponse.ok(response);
     }
 
@@ -79,13 +77,13 @@ public class ArticleController {
     @GetMapping
     public ResponseEntity<SuccessResponse<?>> getArticles(
             @PageableDefault(size = 10, sort = "articleId", direction = Sort.Direction.DESC) Pageable pageable){
-        Page<ArticleResponse> articles = articleService.getArticles(pageable);
+        Page<ArticleListResponse> articles = articleService.getArticles(pageable);
         return SuccessResponse.ok(articles);
     }
 
     @GetMapping("/{articleId}")
     public ResponseEntity<SuccessResponse<?>> getArticle(@PathVariable Long articleId) {
-        ArticleResponse response = articleService.getArticle(articleId);
+        ArticleDetailResponse response = articleService.getArticle(articleId);
         return SuccessResponse.ok(response);
     }
 }
