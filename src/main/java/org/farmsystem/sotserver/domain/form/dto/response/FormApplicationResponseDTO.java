@@ -13,8 +13,8 @@ public record FormApplicationResponseDTO(
         String createdDate,
         FormStatus formStatus,
         ReadStatus readStatus,
-        String imageUrl,
         String nickname,
+        String imageUrl,
         List<String> skills,
         List<String> talents
 ) {
@@ -26,8 +26,8 @@ public record FormApplicationResponseDTO(
                 formattedDate,
                 answerForm.getFormStatus(),
                 answerForm.getReadStatus(),
-                user.getImageUrl(),
                 user.getNickname(),
+                user.getImageUrl(),
                 user.getParsedList(user.getSkills()),
                 user.getParsedList(user.getTalents())
         );

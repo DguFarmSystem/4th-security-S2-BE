@@ -7,10 +7,7 @@ import org.farmsystem.sotserver.domain.form.dto.request.FormCreateRequestDTO;
 import org.farmsystem.sotserver.domain.form.dto.request.FormStatusRequestDTO;
 import org.farmsystem.sotserver.domain.form.dto.response.FormApplicationResponseDTO;
 import org.farmsystem.sotserver.domain.form.dto.response.FormQuestionResponseDTO;
-import org.farmsystem.sotserver.domain.form.entity.AnswerForm;
-import org.farmsystem.sotserver.domain.form.entity.Form;
-import org.farmsystem.sotserver.domain.form.entity.FormStatus;
-import org.farmsystem.sotserver.domain.form.entity.ReadStatus;
+import org.farmsystem.sotserver.domain.form.entity.*;
 import org.farmsystem.sotserver.domain.form.repository.AnswerFormRepository;
 import org.farmsystem.sotserver.domain.form.repository.FormRepository;
 import org.farmsystem.sotserver.domain.user.entity.User;
@@ -63,6 +60,7 @@ public class FormService {
     }
 
     // 폼 질문 조회
+    @Transactional(readOnly = true)
     public List<FormQuestionResponseDTO> getFormQuestions(Long userId, Long formId) {
         Form form = formRepository.findById(formId)
                 .orElseThrow(() -> new EntityNotFoundException(FORM_NOT_FOUND));
@@ -74,17 +72,20 @@ public class FormService {
 
     // 지원폼 목록 조회
     @Transactional(readOnly = true)
-    public List<FormApplicationResponseDTO> getFormApplications(Long userId) {
-        Form form = formRepository.findByUser_UserId(userId)
+    public List<FormApplicationResponseDTO> getFormApplications(Long userId, Long formId) {
+        Form form = formRepository.findById(formId)
                 .orElseThrow(() -> new EntityNotFoundException(FORM_NOT_FOUND));
 
-        List<AnswerForm> answerForms = answerFormRepository.findAllByFormOrderByCreatedAtDesc(form);
+        Article article = form.getArticle();
+        validateAuthor(userId, article);
+
+        List<AnswerForm> answerForms = answerFormRepository
+                .findAllByFormAndAnswerFormStatusOrderByCreatedAtDesc(form, AnswerFormStatus.SUBMITTED);
 
         return answerForms.stream()
                 .map(answerForm -> FormApplicationResponseDTO.from(answerForm, answerForm.getUser()))
                 .toList();
     }
-
 
     // 지원폼 수락/거절
     public void updateFormStatus(Long userId, Long applicationId, FormStatusRequestDTO formStatusRequest) {

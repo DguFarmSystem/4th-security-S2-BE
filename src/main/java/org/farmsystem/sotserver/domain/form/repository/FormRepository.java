@@ -8,6 +8,4 @@ import java.util.Optional;
 
 public interface FormRepository extends JpaRepository<Form, Long> {
     boolean existsByArticle(Article article);
-
-    Optional<Form> findByUser_UserId(Long userId);
 }

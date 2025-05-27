@@ -40,10 +40,12 @@ public class FormController {
     }
 
     // 지원폼 목록 조회
-    @GetMapping("/{formId}/")
+    @GetMapping("/{formId}")
     public ResponseEntity<SuccessResponse<?>> getFormApplications(
-            @AuthenticationPrincipal(expression = "userId") Long userId) {
-        List<FormApplicationResponseDTO> formApplications = formService.getFormApplications(userId);
+            @AuthenticationPrincipal(expression = "userId") Long userId,
+            @PathVariable Long formId
+    ) {
+        List<FormApplicationResponseDTO> formApplications = formService.getFormApplications(userId, formId);
         return SuccessResponse.ok(formApplications);
     }
 
@@ -55,7 +57,6 @@ public class FormController {
             @RequestBody FormStatusRequestDTO formStatusRequest) {
         formService.updateFormStatus(userId, applicationId, formStatusRequest);
         return SuccessResponse.ok(null);
-
     }
 
     // 지원폼 열람
