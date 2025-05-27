@@ -36,5 +36,6 @@ public class AnswerForm extends BaseTimeEntity {
     public void updateFormStatus(FormStatus formStatus) {
         this.formStatus = formStatus;
     }
+    public void updateReadStatus(ReadStatus readStatus) {this.readStatus = readStatus;}
 }
 

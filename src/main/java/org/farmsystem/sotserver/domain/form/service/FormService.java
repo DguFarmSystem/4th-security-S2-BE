@@ -10,6 +10,7 @@ import org.farmsystem.sotserver.domain.form.dto.response.FormQuestionResponseDTO
 import org.farmsystem.sotserver.domain.form.entity.AnswerForm;
 import org.farmsystem.sotserver.domain.form.entity.Form;
 import org.farmsystem.sotserver.domain.form.entity.FormStatus;
+import org.farmsystem.sotserver.domain.form.entity.ReadStatus;
 import org.farmsystem.sotserver.domain.form.repository.AnswerFormRepository;
 import org.farmsystem.sotserver.domain.form.repository.FormRepository;
 import org.farmsystem.sotserver.domain.user.entity.User;
@@ -71,21 +72,6 @@ public class FormService {
                 .toList();
     }
 
-    // 폼 수락/거절
-    public void updateFormStatus(Long userId, FormStatusRequestDTO formStatusRequest) {
-        Long applicationId = formStatusRequest.applicationId();
-        FormStatus formStatus = formStatusRequest.formStatus();
-
-        AnswerForm answerForm = answerFormRepository.findById(applicationId)
-                .orElseThrow(() -> new EntityNotFoundException(ANSWER_FORM_NOT_FOUND));
-
-        Form form = answerForm.getForm();
-        Article article = form.getArticle();
-        validateAuthor(userId, article);
-
-        answerForm.updateFormStatus(formStatus);
-    }
-
     // 지원폼 목록 조회
     @Transactional(readOnly = true)
     public List<FormApplicationResponseDTO> getFormApplications(Long userId) {
@@ -97,5 +83,35 @@ public class FormService {
         return answerForms.stream()
                 .map(answerForm -> FormApplicationResponseDTO.from(answerForm, answerForm.getUser()))
                 .toList();
+    }
+
+
+    // 지원폼 수락/거절
+    public void updateFormStatus(Long userId, Long applicationId, FormStatusRequestDTO formStatusRequest) {
+        FormStatus formStatus = formStatusRequest.formStatus();
+
+        AnswerForm answerForm = answerFormRepository.findById(applicationId)
+                .orElseThrow(() -> new EntityNotFoundException(ANSWER_FORM_NOT_FOUND));
+
+        // 작성자인지 검증
+        Form form = answerForm.getForm();
+        Article article = form.getArticle();
+        validateAuthor(userId, article);
+
+        answerForm.updateFormStatus(formStatus);
+    }
+
+    // 지원폼 열람
+    public void readFormApplication(Long userId, Long applicationId) {
+        AnswerForm answerForm = answerFormRepository.findById(applicationId)
+                .orElseThrow(() -> new EntityNotFoundException(ANSWER_FORM_NOT_FOUND));
+
+        Form form = answerForm.getForm();
+        Article article = form.getArticle();
+        validateAuthor(userId, article);
+
+        if (answerForm.getReadStatus() == ReadStatus.UNREAD) {
+            answerForm.updateReadStatus(ReadStatus.READ);
+        }
     }
 }
