@@ -1,6 +1,6 @@
 package org.farmsystem.sotserver.domain.form.entity;
 
 public enum ReadStatus {
-    UNREAD,
-    READ
+    UNREAD, //미열람
+    READ //열람
 }

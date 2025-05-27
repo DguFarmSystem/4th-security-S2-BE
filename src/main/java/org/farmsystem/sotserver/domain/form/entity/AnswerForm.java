@@ -36,9 +36,7 @@ public class AnswerForm extends BaseTimeEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
-    public void updateFormStatus(FormStatus formStatus) {
-        this.formStatus = formStatus;
-    }
+    public void updateFormStatus(FormStatus formStatus) {this.formStatus = formStatus;}
     public void updateReadStatus(ReadStatus readStatus) {this.readStatus = readStatus;}
 }
 
