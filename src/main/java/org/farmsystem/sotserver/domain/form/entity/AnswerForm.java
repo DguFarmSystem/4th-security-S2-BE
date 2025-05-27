@@ -20,7 +20,8 @@ public class AnswerForm extends BaseTimeEntity {
     private Long applicationId;
 
     @Enumerated(EnumType.STRING)
-    private FormStatus formStatus;
+
+    private FormStatus formStatus = FormStatus.WAITING;
 
     @ManyToOne
     @JoinColumn(name = "form_id")
@@ -29,5 +30,9 @@ public class AnswerForm extends BaseTimeEntity {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+
+    public void updateFormStatus(FormStatus formStatus) {
+        this.formStatus = formStatus;
+    }
 }
 

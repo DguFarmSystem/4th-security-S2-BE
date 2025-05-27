@@ -4,8 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.farmsystem.sotserver.domain.article.entity.Article;
 import org.farmsystem.sotserver.domain.article.repository.ArticleRepository;
 import org.farmsystem.sotserver.domain.form.dto.request.FormCreateRequestDTO;
+import org.farmsystem.sotserver.domain.form.dto.request.FormStatusRequestDTO;
 import org.farmsystem.sotserver.domain.form.dto.response.FormQuestionResponseDTO;
+import org.farmsystem.sotserver.domain.form.entity.AnswerForm;
 import org.farmsystem.sotserver.domain.form.entity.Form;
+import org.farmsystem.sotserver.domain.form.entity.FormStatus;
+import org.farmsystem.sotserver.domain.form.repository.AnswerFormRepository;
 import org.farmsystem.sotserver.domain.form.repository.FormRepository;
 import org.farmsystem.sotserver.domain.user.entity.User;
 import org.farmsystem.sotserver.global.error.exception.ConflictException;
@@ -25,6 +29,14 @@ public class FormService {
 
     private final ArticleRepository articleRepository;
     private final FormRepository formRepository;
+    private final AnswerFormRepository answerFormRepository;
+
+    // 작성자인지 검증
+    private void validateAuthor(Long userId, Article article) {
+        if (!article.getAuthor().getUserId().equals(userId)) {
+            throw new ForbiddenException(ARTICLE_AUTHOR_ONLY_ACTION);
+        }
+    }
 
     // 폼 생성 (질문 생성)
     public void createForm(Long userId, FormCreateRequestDTO formCreateRequest) {
@@ -32,9 +44,7 @@ public class FormService {
                 .orElseThrow(() -> new EntityNotFoundException(ARTICLE_NOT_FOUND));
 
         User author = article.getAuthor();
-        if (!author.getUserId().equals(userId)) {
-            throw new ForbiddenException(ARTICLE_AUTHOR_ONLY_FORM_CREATION);
-        }
+        validateAuthor(userId, article);
 
         if (formRepository.existsByArticle(article)) {
             throw new ConflictException(ARTICLE_FORM_ALREADY_EXISTS);
@@ -58,5 +68,20 @@ public class FormService {
         return form.getQuestions().stream()
                 .map(question -> FormQuestionResponseDTO.of(question.getQuestionOrder(), question.getQuestionContent()))
                 .toList();
+    }
+
+    // 폼 수락/거절
+    public void updateFormStatus(Long userId, FormStatusRequestDTO formStatusRequest) {
+        Long applicationId = formStatusRequest.applicationId();
+        FormStatus formStatus = formStatusRequest.formStatus();
+
+        AnswerForm answerForm = answerFormRepository.findById(applicationId)
+                .orElseThrow(() -> new EntityNotFoundException(ANSWER_FORM_NOT_FOUND));
+
+        Form form = answerForm.getForm();
+        Article article = form.getArticle();
+        validateAuthor(userId, article);
+
+        answerForm.updateFormStatus(formStatus);
     }
 }

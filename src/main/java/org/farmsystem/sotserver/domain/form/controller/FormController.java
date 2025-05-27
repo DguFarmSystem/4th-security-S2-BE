@@ -2,6 +2,7 @@ package org.farmsystem.sotserver.domain.form.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.farmsystem.sotserver.domain.form.dto.request.FormCreateRequestDTO;
+import org.farmsystem.sotserver.domain.form.dto.request.FormStatusRequestDTO;
 import org.farmsystem.sotserver.domain.form.dto.response.FormQuestionResponseDTO;
 import org.farmsystem.sotserver.domain.form.service.FormService;
 import org.farmsystem.sotserver.global.common.SuccessResponse;
@@ -35,6 +36,16 @@ public class FormController {
             @PathVariable Long formId ) {
         List<FormQuestionResponseDTO> formQuestions = formService.getFormQuestions(userId, formId);
         return SuccessResponse.ok(formQuestions);
+    }
+
+    // 폼 수락/거절
+    @PatchMapping
+    public ResponseEntity<SuccessResponse<?>> acceptForm(
+            @AuthenticationPrincipal(expression = "userId") Long userId,
+            @RequestBody FormStatusRequestDTO formStatusRequest) {
+        formService.updateFormStatus(userId, formStatusRequest);
+        return SuccessResponse.ok(null);
+
     }
 
 }
