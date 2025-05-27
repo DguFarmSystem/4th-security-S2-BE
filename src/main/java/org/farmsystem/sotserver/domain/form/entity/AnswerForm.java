@@ -20,8 +20,10 @@ public class AnswerForm extends BaseTimeEntity {
     private Long applicationId;
 
     @Enumerated(EnumType.STRING)
-
     private FormStatus formStatus = FormStatus.WAITING;
+
+    @Enumerated(EnumType.STRING)
+    private ReadStatus readStatus = ReadStatus.UNREAD;
 
     @ManyToOne
     @JoinColumn(name = "form_id")
