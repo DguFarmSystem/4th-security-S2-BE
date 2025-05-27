@@ -16,6 +16,7 @@ import org.farmsystem.sotserver.global.common.BaseTimeEntity;
 @Entity
 public class AnswerForm extends BaseTimeEntity {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long applicationId;
 
     @Enumerated(EnumType.STRING)

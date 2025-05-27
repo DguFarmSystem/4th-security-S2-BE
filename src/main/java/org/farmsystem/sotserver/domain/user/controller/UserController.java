@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
     private final UserService userService;
 
-
     //마이페이지 수정
     @PatchMapping("/my-page")
     public ResponseEntity<SuccessResponse<?>> updateProfile(
