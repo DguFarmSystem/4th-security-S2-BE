@@ -50,6 +50,7 @@ public enum ErrorCode {
      * 500 Internal Server Error
      */
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류입니다."),
+    FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S3 파일 업로드 중 오류가 발생했습니다."),
 
     /**
      * Oauth Error
@@ -65,6 +66,17 @@ public enum ErrorCode {
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
     USER_ALREADY_EXISTS(HttpStatus.CONFLICT, "다른 소셜 계정으로 이미 가입된 사용자입니다."),
 
+    /**
+     * Article Error
+     */
+    ARTICLE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 게시글을 찾을 수 없습니다."),
+    ARTICLE_AUTHOR_ONLY_FORM_CREATION(HttpStatus.FORBIDDEN, "게시물 작성자만 폼을 생성할 수 있습니다."),
+    ARTICLE_FORM_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 해당 게시물에 대한 질문폼이 존재합니다."),
+
+    /**
+     * Form Error
+     */
+    FORM_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 질문폼을 찾을 수 없습니다."),
     ;
 
     private final HttpStatus httpStatus;

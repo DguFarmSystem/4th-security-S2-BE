@@ -14,10 +14,15 @@ import lombok.NoArgsConstructor;
 @Entity
 public class FormQuestion {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long questionId;
 
-    @ManyToOne
-    @JoinColumn(name = "form_id")
+    private String questionContent;
+
+    private int questionOrder;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "form_id", nullable = false)
     private Form form;
 }
 
