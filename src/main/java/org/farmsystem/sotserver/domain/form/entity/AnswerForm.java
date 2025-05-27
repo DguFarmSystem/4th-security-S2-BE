@@ -25,6 +25,9 @@ public class AnswerForm extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private ReadStatus readStatus = ReadStatus.UNREAD;
 
+    @Enumerated(EnumType.STRING)
+    private AnswerFormStatus answerFormStatus = AnswerFormStatus.SAVING;
+
     @ManyToOne
     @JoinColumn(name = "form_id")
     private Form form;
