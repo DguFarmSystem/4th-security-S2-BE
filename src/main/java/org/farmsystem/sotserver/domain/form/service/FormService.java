@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.farmsystem.sotserver.domain.article.entity.Article;
 import org.farmsystem.sotserver.domain.article.repository.ArticleRepository;
 import org.farmsystem.sotserver.domain.form.dto.request.FormCreateRequestDTO;
+import org.farmsystem.sotserver.domain.form.dto.response.FormQuestionResponseDTO;
 import org.farmsystem.sotserver.domain.form.entity.Form;
 import org.farmsystem.sotserver.domain.form.repository.FormRepository;
 import org.farmsystem.sotserver.domain.user.entity.User;
@@ -12,6 +13,8 @@ import org.farmsystem.sotserver.global.error.exception.EntityNotFoundException;
 import org.farmsystem.sotserver.global.error.exception.ForbiddenException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 import static org.farmsystem.sotserver.global.error.ErrorCode.*;
 
@@ -45,5 +48,15 @@ public class FormService {
         }
 
         formRepository.save(form);
+    }
+
+    // 폼 질문 조회
+    public List<FormQuestionResponseDTO> getFormQuestions(Long userId, Long formId) {
+        Form form = formRepository.findById(formId)
+                .orElseThrow(() -> new EntityNotFoundException(FORM_NOT_FOUND));
+
+        return form.getQuestions().stream()
+                .map(question -> FormQuestionResponseDTO.of(question.getQuestionOrder(), question.getQuestionContent()))
+                .toList();
     }
 }
