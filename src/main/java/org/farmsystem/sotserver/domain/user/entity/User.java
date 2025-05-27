@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Getter
 @NoArgsConstructor
 @Table(name = "user")
@@ -40,6 +42,12 @@ public class User {
     public void updateIntroduction(String introduction) {this.introduction = introduction;}
     public void updateSkills(String skills) {this.skills = skills;}
     public void updateTalents(String talents) {this.talents = talents;}
+
+    // 스트링 파싱 -> 리스트
+    public List<String> getParsedList(String value) {
+        if (value == null || value.isBlank()) return List.of();
+        return List.of(value.split(","));
+    }
 
 }
 

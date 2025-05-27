@@ -5,6 +5,7 @@ import org.farmsystem.sotserver.domain.article.entity.Article;
 import org.farmsystem.sotserver.domain.article.repository.ArticleRepository;
 import org.farmsystem.sotserver.domain.form.dto.request.FormCreateRequestDTO;
 import org.farmsystem.sotserver.domain.form.dto.request.FormStatusRequestDTO;
+import org.farmsystem.sotserver.domain.form.dto.response.FormApplicationResponseDTO;
 import org.farmsystem.sotserver.domain.form.dto.response.FormQuestionResponseDTO;
 import org.farmsystem.sotserver.domain.form.entity.AnswerForm;
 import org.farmsystem.sotserver.domain.form.entity.Form;
@@ -83,5 +84,18 @@ public class FormService {
         validateAuthor(userId, article);
 
         answerForm.updateFormStatus(formStatus);
+    }
+
+    // 지원폼 목록 조회
+    @Transactional(readOnly = true)
+    public List<FormApplicationResponseDTO> getFormApplications(Long userId) {
+        Form form = formRepository.findByUser_UserId(userId)
+                .orElseThrow(() -> new EntityNotFoundException(FORM_NOT_FOUND));
+
+        List<AnswerForm> answerForms = answerFormRepository.findAllByFormOrderByCreatedAtDesc(form);
+
+        return answerForms.stream()
+                .map(answerForm -> FormApplicationResponseDTO.from(answerForm, answerForm.getUser()))
+                .toList();
     }
 }
