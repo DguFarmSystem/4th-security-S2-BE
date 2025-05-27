@@ -2,6 +2,8 @@ package org.farmsystem.sotserver.domain.form.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.farmsystem.sotserver.domain.form.dto.request.FormCreateRequestDTO;
+import org.farmsystem.sotserver.domain.form.dto.request.FormStatusRequestDTO;
+import org.farmsystem.sotserver.domain.form.dto.response.FormApplicationResponseDTO;
 import org.farmsystem.sotserver.domain.form.dto.response.FormQuestionResponseDTO;
 import org.farmsystem.sotserver.domain.form.service.FormService;
 import org.farmsystem.sotserver.global.common.SuccessResponse;
@@ -35,6 +37,35 @@ public class FormController {
             @PathVariable Long formId ) {
         List<FormQuestionResponseDTO> formQuestions = formService.getFormQuestions(userId, formId);
         return SuccessResponse.ok(formQuestions);
+    }
+
+    // 지원폼 목록 조회
+    @GetMapping("/{formId}")
+    public ResponseEntity<SuccessResponse<?>> getFormApplications(
+            @AuthenticationPrincipal(expression = "userId") Long userId,
+            @PathVariable Long formId
+    ) {
+        List<FormApplicationResponseDTO> formApplications = formService.getFormApplications(userId, formId);
+        return SuccessResponse.ok(formApplications);
+    }
+
+    // 지원폼 수락/거절
+    @PatchMapping("/application/{applicationId}/status")
+    public ResponseEntity<SuccessResponse<?>> acceptForm(
+            @AuthenticationPrincipal(expression = "userId") Long userId,
+            @PathVariable Long applicationId,
+            @RequestBody FormStatusRequestDTO formStatusRequest) {
+        formService.updateFormStatus(userId, applicationId, formStatusRequest);
+        return SuccessResponse.ok(null);
+    }
+
+    // 지원폼 열람
+    @PatchMapping("/application/{applicationId}/read")
+    public ResponseEntity<SuccessResponse<?>> readFormApplication(
+            @AuthenticationPrincipal(expression = "userId") Long userId,
+            @PathVariable Long applicationId) {
+        formService.readFormApplication(userId, applicationId);
+        return SuccessResponse.ok(null);
     }
 
 }

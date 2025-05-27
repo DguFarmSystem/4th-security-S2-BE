@@ -1,7 +1,11 @@
 package org.farmsystem.sotserver.domain.article.service;
 
 import lombok.RequiredArgsConstructor;
-import org.farmsystem.sotserver.domain.article.dto.*;
+import org.farmsystem.sotserver.domain.article.dto.request.ArticleCreateRequest;
+import org.farmsystem.sotserver.domain.article.dto.request.ArticleStatusRequest;
+import org.farmsystem.sotserver.domain.article.dto.response.ArticleCreateResponse;
+import org.farmsystem.sotserver.domain.article.dto.response.ArticleDetailResponse;
+import org.farmsystem.sotserver.domain.article.dto.response.ArticleListResponse;
 import org.farmsystem.sotserver.domain.article.entity.Article;
 import org.farmsystem.sotserver.domain.article.entity.ArticleStatus;
 import org.farmsystem.sotserver.domain.article.entity.Image;

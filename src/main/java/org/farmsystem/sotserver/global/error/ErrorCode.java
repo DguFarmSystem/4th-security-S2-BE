@@ -70,13 +70,14 @@ public enum ErrorCode {
      * Article Error
      */
     ARTICLE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 게시글을 찾을 수 없습니다."),
-    ARTICLE_AUTHOR_ONLY_FORM_CREATION(HttpStatus.FORBIDDEN, "게시물 작성자만 폼을 생성할 수 있습니다."),
+    ARTICLE_AUTHOR_ONLY_ACTION(HttpStatus.FORBIDDEN, "게시글 작성자만 수행할 수 있는 작업입니다."),
     ARTICLE_FORM_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 해당 게시물에 대한 질문폼이 존재합니다."),
 
     /**
      * Form Error
      */
     FORM_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 질문폼을 찾을 수 없습니다."),
+    ANSWER_FORM_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 답변폼을 찾을 수 없습니다."),
     ;
 
     private final HttpStatus httpStatus;

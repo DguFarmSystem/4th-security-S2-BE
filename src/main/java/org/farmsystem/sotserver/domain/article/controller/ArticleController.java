@@ -2,7 +2,11 @@ package org.farmsystem.sotserver.domain.article.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.farmsystem.sotserver.domain.article.dto.*;
+import org.farmsystem.sotserver.domain.article.dto.request.ArticleCreateRequest;
+import org.farmsystem.sotserver.domain.article.dto.request.ArticleStatusRequest;
+import org.farmsystem.sotserver.domain.article.dto.response.ArticleCreateResponse;
+import org.farmsystem.sotserver.domain.article.dto.response.ArticleDetailResponse;
+import org.farmsystem.sotserver.domain.article.dto.response.ArticleListResponse;
 import org.farmsystem.sotserver.domain.article.service.ArticleService;
 import org.farmsystem.sotserver.global.common.SuccessResponse;
 import org.farmsystem.sotserver.global.config.auth.CustomUserDetails;
