@@ -1,4 +1,4 @@
-package org.farmsystem.sotserver.domain.article.dto;
+package org.farmsystem.sotserver.domain.article.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

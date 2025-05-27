@@ -1,4 +1,4 @@
-package org.farmsystem.sotserver.domain.article.dto;
+package org.farmsystem.sotserver.domain.article.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;

@@ -1,11 +1,10 @@
-package org.farmsystem.sotserver.domain.article.dto;
+package org.farmsystem.sotserver.domain.article.dto.response;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
+import lombok.Builder;
 import org.farmsystem.sotserver.domain.article.entity.Article;
 import org.farmsystem.sotserver.domain.article.entity.ArticleStatus;
-import org.farmsystem.sotserver.domain.comment.dto.CommentResponse;
 import org.farmsystem.sotserver.global.s3.S3Uploader;
 
 import java.time.LocalDateTime;
@@ -14,7 +13,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @Builder
-public class ArticleDetailResponse {
+public class ArticleListResponse {
     private Long id;
     private String title;
     private String content;
@@ -24,22 +23,23 @@ public class ArticleDetailResponse {
     private LocalDateTime updateAt;
     private List<String> imageUrls;
 
-    // 댓글 정보 필드 추가
-    private List<CommentResponse> comments;
+    // 댓글 개수 필드
+    private int commentCount;
 
-    public static ArticleDetailResponse from(Article article, S3Uploader s3Uploader, List<CommentResponse> comments) {
-        return ArticleDetailResponse.builder()
+    // 팩토리 메서드
+    public static ArticleListResponse from(Article article, S3Uploader s3Uploader, int commentCount) {
+        return ArticleListResponse.builder()
                 .id(article.getArticleId())
                 .title(article.getTitle())
                 .content(article.getContent())
-                .userId(article.getAuthor().getUserId())
                 .status(article.getStatus())
+                .userId(article.getAuthor().getUserId())
                 .createAt(article.getCreatedAt())
                 .updateAt(article.getUpdatedAt())
                 .imageUrls(article.getImages().stream()
                         .map(img -> s3Uploader.getFileUrl(img.getKey()))
                         .toList())
-                .comments(comments)
+                .commentCount(commentCount)
                 .build();
     }
 }
