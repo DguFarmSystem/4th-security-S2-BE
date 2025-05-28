@@ -1,9 +1,15 @@
 package org.farmsystem.sotserver.domain.user.service;
 
 import lombok.RequiredArgsConstructor;
-
+import org.farmsystem.sotserver.domain.article.dto.response.MyArticleResponseDTO;
+import org.farmsystem.sotserver.domain.article.service.ArticleService;
+import org.farmsystem.sotserver.domain.form.dto.response.MyApplicationResponseDTO;
+import org.farmsystem.sotserver.domain.form.dto.response.MyApplicationResultResponseDTO;
+import org.farmsystem.sotserver.domain.form.service.FormService;
 import org.farmsystem.sotserver.domain.user.dto.request.ProfileUpdateRequestDTO;
 import org.farmsystem.sotserver.domain.user.dto.request.UserLoginRequestDTO;
+import org.farmsystem.sotserver.domain.user.dto.response.MyProfileResponseDTO;
+import org.farmsystem.sotserver.domain.user.dto.response.MypageResponseDTO;
 import org.farmsystem.sotserver.domain.user.dto.response.UserTokenResponseDTO;
 import org.farmsystem.sotserver.domain.user.entity.Role;
 import org.farmsystem.sotserver.domain.user.entity.User;
@@ -31,6 +37,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final JwtProvider jwtProvider;
     private final S3Uploader s3Uploader;
+    private final ArticleService articleService;
+    private final FormService formService;
 
     public User saveUser(String socialId, String imageUrl, UserLoginRequestDTO request) {
         return userRepository.findBySocialId(socialId)
@@ -69,5 +77,20 @@ public class UserService {
         } catch (IOException e) {
             throw new BusinessException(FILE_UPLOAD_FAILED);
         }
+    }
+
+    //마이페이지 조회
+    public MypageResponseDTO getMypage(Long userId) {
+        MyProfileResponseDTO myProfile = getMyProfile(userId);
+        List<MyApplicationResultResponseDTO> myApplicationResults = formService.getMyApplicationResult(userId);
+        List<MyApplicationResponseDTO> myApplications = formService.getMyApplications(userId);
+        List<MyArticleResponseDTO> myArticles = articleService.getMyArticles(userId);
+        return MypageResponseDTO.of(myProfile, myApplicationResults, myApplications, myArticles);
+    }
+
+    private MyProfileResponseDTO getMyProfile(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
+        return MyProfileResponseDTO.from(user);
     }
 }
