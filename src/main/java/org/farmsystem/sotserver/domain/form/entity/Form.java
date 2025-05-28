@@ -32,6 +32,9 @@ public class Form extends BaseTimeEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @OneToMany(mappedBy = "form")
+    private List<AnswerForm> answerForms;
+
     // Form에서 질문 리스트 조회 위한 양방향 매핑 추가
     @OneToMany(mappedBy = "form", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FormQuestion> questions;
