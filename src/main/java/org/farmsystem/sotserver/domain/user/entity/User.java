@@ -17,6 +17,8 @@ public class User {
 
     private String nickname;
 
+    private String email;
+
     private String socialId;
 
     private String imageUrl;
