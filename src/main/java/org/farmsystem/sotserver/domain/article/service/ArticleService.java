@@ -6,6 +6,7 @@ import org.farmsystem.sotserver.domain.article.dto.request.ArticleStatusRequest;
 import org.farmsystem.sotserver.domain.article.dto.response.ArticleCreateResponse;
 import org.farmsystem.sotserver.domain.article.dto.response.ArticleDetailResponse;
 import org.farmsystem.sotserver.domain.article.dto.response.ArticleListResponse;
+import org.farmsystem.sotserver.domain.article.dto.response.MyArticleResponseDTO;
 import org.farmsystem.sotserver.domain.article.entity.Article;
 import org.farmsystem.sotserver.domain.article.entity.ArticleStatus;
 import org.farmsystem.sotserver.domain.article.entity.Image;
@@ -14,8 +15,11 @@ import org.farmsystem.sotserver.domain.article.repository.ImageRepository;
 import org.farmsystem.sotserver.domain.comment.dto.CommentResponse;
 import org.farmsystem.sotserver.domain.comment.entity.Comment;
 import org.farmsystem.sotserver.domain.comment.repository.CommentRepository;
+import org.farmsystem.sotserver.domain.form.entity.Form;
+import org.farmsystem.sotserver.domain.form.entity.FormStatus;
 import org.farmsystem.sotserver.domain.user.entity.User;
 import org.farmsystem.sotserver.domain.user.repository.UserRepository;
+import org.farmsystem.sotserver.global.error.exception.EntityNotFoundException;
 import org.farmsystem.sotserver.global.s3.S3Uploader;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +30,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.farmsystem.sotserver.global.error.ErrorCode.*;
 
 @Service
 @RequiredArgsConstructor
@@ -149,4 +155,27 @@ public class ArticleService {
             }
         }
     }
+
+    @Transactional(readOnly = true)
+    public List<MyArticleResponseDTO> getMyArticles(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
+
+        List<Article> articles = articleRepository.findByAuthorOrderByCreatedAtDesc(user);
+
+        return articles.stream()
+                .map(article -> {
+                    boolean isAccepted = articleHasApprovedAnswerForm(article);
+                    return MyArticleResponseDTO.from(article, isAccepted);
+                })
+                .toList();
+    }
+
+    //수락 완료인지 판별(임시용)
+    private boolean articleHasApprovedAnswerForm(Article article) {
+        Form form = article.getForm();
+        return form.getAnswerForms().stream()
+                .anyMatch(answerForm -> answerForm.getFormStatus() == FormStatus.APPROVED);
+    }
+
 }
