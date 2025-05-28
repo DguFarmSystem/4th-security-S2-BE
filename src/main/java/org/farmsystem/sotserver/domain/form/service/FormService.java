@@ -7,10 +7,13 @@ import org.farmsystem.sotserver.domain.form.dto.request.FormCreateRequestDTO;
 import org.farmsystem.sotserver.domain.form.dto.request.FormStatusRequestDTO;
 import org.farmsystem.sotserver.domain.form.dto.response.FormApplicationResponseDTO;
 import org.farmsystem.sotserver.domain.form.dto.response.FormQuestionResponseDTO;
+import org.farmsystem.sotserver.domain.form.dto.response.MyApplicationResponseDTO;
+import org.farmsystem.sotserver.domain.form.dto.response.MyApplicationResultResponseDTO;
 import org.farmsystem.sotserver.domain.form.entity.*;
 import org.farmsystem.sotserver.domain.form.repository.AnswerFormRepository;
 import org.farmsystem.sotserver.domain.form.repository.FormRepository;
 import org.farmsystem.sotserver.domain.user.entity.User;
+import org.farmsystem.sotserver.domain.user.repository.UserRepository;
 import org.farmsystem.sotserver.global.error.exception.ConflictException;
 import org.farmsystem.sotserver.global.error.exception.EntityNotFoundException;
 import org.farmsystem.sotserver.global.error.exception.ForbiddenException;
@@ -29,6 +32,7 @@ public class FormService {
     private final ArticleRepository articleRepository;
     private final FormRepository formRepository;
     private final AnswerFormRepository answerFormRepository;
+    private final UserRepository userRepository;
 
     // 작성자인지 검증
     private void validateAuthor(Long userId, Article article) {
@@ -114,5 +118,37 @@ public class FormService {
         if (answerForm.getReadStatus() == ReadStatus.UNREAD) {
             answerForm.updateReadStatus(ReadStatus.READ);
         }
+    }
+
+    //내 지원폼 결과보기 (제출 완료인 지원서 결과)
+    public List<MyApplicationResultResponseDTO> getMyApplicationResult(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(()-> new EntityNotFoundException(USER_NOT_FOUND));
+
+        //제출 완료인 지원서만 필터링
+        List<AnswerForm> submittedForms = answerFormRepository.findByUserOrderByCreatedAtDesc(user).stream()
+                .filter(answerForm -> answerForm.getAnswerFormStatus()==AnswerFormStatus.SUBMITTED)
+                .toList();
+
+        return submittedForms.stream()
+                .map(answerForm -> {
+                    Article article = answerForm.getForm().getArticle();
+                    FormStatus status = answerForm.getFormStatus();
+                    return MyApplicationResultResponseDTO.from(article, status);
+                })
+                .toList();
+    }
+
+    //내 지원폼 보기(작성 중인 지원서 포함)
+    public List<MyApplicationResponseDTO> getMyApplications(Long userId){
+        User user = userRepository.findById(userId)
+                .orElseThrow(()-> new EntityNotFoundException(USER_NOT_FOUND));
+
+        return answerFormRepository.findByUserOrderByCreatedAtDesc(user).stream()
+                .map(answerForm -> {
+                    Article article = answerForm.getForm().getArticle();
+                    return MyApplicationResponseDTO.from(article, answerForm);
+                })
+                .toList();
     }
 }

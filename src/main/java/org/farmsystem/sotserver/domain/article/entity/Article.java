@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.farmsystem.sotserver.domain.form.entity.Form;
 import org.farmsystem.sotserver.domain.user.entity.User;
 import org.farmsystem.sotserver.global.common.BaseTimeEntity;
 
@@ -38,6 +39,9 @@ public class Article extends BaseTimeEntity {
     @OneToMany(mappedBy = "article", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Image> images = new ArrayList<>();
 
+    @OneToOne(mappedBy = "article")
+    private Form form;
+
     public void update(String title, String content) {
         this.title = title;
         this.content = content;
@@ -45,5 +49,11 @@ public class Article extends BaseTimeEntity {
 
     public void changeStatus(ArticleStatus status) {
         this.status = status;
+    }
+
+    // 대표 이미지 가져오기(썸네일용)
+    @Transient
+    public String getThumbnailImage() {
+        return images.isEmpty() ? null : images.get(0).getKey();
     }
 }
