@@ -78,16 +78,51 @@ public class ArticleController {
         return SuccessResponse.noContent(); // ✅ 204 No Content
     }
 
+    // 좋아요 정보 포함: 인증된 사용자만 userId 전달, 비로그인 시 null
     @GetMapping
     public ResponseEntity<SuccessResponse<?>> getArticles(
-            @PageableDefault(size = 10, sort = "articleId", direction = Sort.Direction.DESC) Pageable pageable){
-        Page<ArticleListResponse> articles = articleService.getArticles(pageable);
+            @PageableDefault(size = 10, sort = "articleId", direction = Sort.Direction.DESC) Pageable pageable,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long userId = (userDetails != null) ? userDetails.getUserId() : null;
+        Page<ArticleListResponse> articles = articleService.getArticles(pageable, userId);
         return SuccessResponse.ok(articles);
     }
 
     @GetMapping("/{articleId}")
-    public ResponseEntity<SuccessResponse<?>> getArticle(@PathVariable Long articleId) {
-        ArticleDetailResponse response = articleService.getArticle(articleId);
+    public ResponseEntity<SuccessResponse<?>> getArticle(
+            @PathVariable Long articleId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long userId = (userDetails != null) ? userDetails.getUserId() : null;
+        ArticleDetailResponse response = articleService.getArticle(articleId, userId);
+        return SuccessResponse.ok(response);
+    }
+
+    // 게시글 좋아요
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PostMapping("/{articleId}/like")
+    public ResponseEntity<SuccessResponse<?>> likeArticle(
+            @PathVariable Long articleId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        articleService.likeArticle(articleId, userDetails.getUserId());
+        return SuccessResponse.ok(null);
+    }
+
+    // 게시글 좋아요 취소
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @DeleteMapping("/{articleId}/like")
+    public ResponseEntity<SuccessResponse<?>> unlikeArticle(
+            @PathVariable Long articleId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        articleService.unlikeArticle(articleId, userDetails.getUserId());
+        return SuccessResponse.ok(null);
+    }
+
+    // 내가 좋아요한 게시글 목록
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @GetMapping("/liked")
+    public ResponseEntity<SuccessResponse<?>> getLikedArticles(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        List<ArticleListResponse> response = articleService.getLikedArticleResponses(userDetails.getUserId());
         return SuccessResponse.ok(response);
     }
 }
