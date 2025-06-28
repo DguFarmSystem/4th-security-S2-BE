@@ -97,6 +97,4 @@ public class JwtProvider {
         ).get("sub").toString();
     }
 
-
-
 }
