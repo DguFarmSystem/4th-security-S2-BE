@@ -21,7 +21,9 @@ import org.farmsystem.sotserver.domain.form.entity.Form;
 import org.farmsystem.sotserver.domain.form.entity.FormStatus;
 import org.farmsystem.sotserver.domain.user.entity.User;
 import org.farmsystem.sotserver.domain.user.repository.UserRepository;
+import org.farmsystem.sotserver.global.error.exception.ConflictException;
 import org.farmsystem.sotserver.global.error.exception.EntityNotFoundException;
+import org.farmsystem.sotserver.global.error.exception.ForbiddenException;
 import org.farmsystem.sotserver.global.s3.S3Uploader;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -48,7 +50,7 @@ public class ArticleService {
 
     public ArticleCreateResponse createArticle(Long userId, List<MultipartFile> images, ArticleCreateRequest request){
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저가 존재하지 않습니다."));
+                .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
 
         Article article = Article.builder()
                 .title(request.getTitle())
@@ -67,10 +69,10 @@ public class ArticleService {
     @Transactional
     public ArticleCreateResponse updateArticle(Long articleId, Long userId, List<MultipartFile> images, ArticleCreateRequest request){
         Article article = articleRepository.findById(articleId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
+                .orElseThrow(() -> new EntityNotFoundException(ARTICLE_NOT_FOUND));
 
         if (!article.getAuthor().getUserId().equals(userId)){
-            throw new SecurityException("본인의 글만 수정할 수 있습니다");
+            throw new ForbiddenException(ARTICLE_AUTHOR_ONLY_ACTION);
         }
 
         article.update(request.getTitle(), request.getContent());
@@ -92,10 +94,10 @@ public class ArticleService {
     @Transactional
     public ArticleCreateResponse changeStatus(Long articleId, Long userId, ArticleStatusRequest request){
         Article article = articleRepository.findById(articleId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+                .orElseThrow(() -> new EntityNotFoundException(ARTICLE_NOT_FOUND));
 
         if (!article.getAuthor().getUserId().equals(userId)){
-            throw new SecurityException("본인의 글만 상태를 변경할 수 있습니다.");
+            throw new ForbiddenException(ARTICLE_AUTHOR_ONLY_ACTION);
         }
 
         article.changeStatus(request.getStatus());
@@ -106,10 +108,10 @@ public class ArticleService {
     @Transactional
     public void deleteArticle(Long articleId, Long userId){
         Article article = articleRepository.findById(articleId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+                .orElseThrow(() -> new EntityNotFoundException(ARTICLE_NOT_FOUND));
 
         if (!article.getAuthor().getUserId().equals(userId)){
-            throw new SecurityException("본인의 글만 삭제할 수 있습니다.");
+            throw new ForbiddenException(ARTICLE_AUTHOR_ONLY_ACTION);
         }
 
         List<Image> toDelete = new ArrayList<>(article.getImages());
@@ -125,7 +127,7 @@ public class ArticleService {
     @Transactional(readOnly = true)
     public ArticleDetailResponse getArticle(Long articleId, Long userId){
         Article article = articleRepository.findById(articleId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
+                .orElseThrow(() -> new EntityNotFoundException(ARTICLE_NOT_FOUND));
         List<Comment> commentList = commentRepository.findByArticle_ArticleId(articleId);
         List<CommentResponse> commentResponses = commentList.stream()
                 .map(CommentResponse::from)
@@ -188,11 +190,11 @@ public class ArticleService {
     @Transactional
     public void likeArticle(Long articleId, Long userId) {
         Article article = articleRepository.findById(articleId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
+                .orElseThrow(() -> new EntityNotFoundException(ARTICLE_NOT_FOUND));
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다."));
+                .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
         if (articleLikeRepository.findByArticleAndUser(article, user).isPresent()) {
-            throw new IllegalStateException("이미 좋아요를 누른 게시글입니다.");
+            throw new ConflictException(ALREADY_LIKED_ARTICLE);
         }
         ArticleLike like = ArticleLike.builder().article(article).user(user).build();
         articleLikeRepository.save(like);
@@ -202,9 +204,9 @@ public class ArticleService {
     @Transactional
     public void unlikeArticle(Long articleId, Long userId) {
         Article article = articleRepository.findById(articleId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
+                .orElseThrow(() -> new EntityNotFoundException(ARTICLE_NOT_FOUND));
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다."));
+                .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
         articleLikeRepository.deleteByArticleAndUser(article, user);
     }
 
@@ -212,7 +214,7 @@ public class ArticleService {
     @Transactional(readOnly = true)
     public Long getLikeCount(Long articleId) {
         Article article = articleRepository.findById(articleId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
+                .orElseThrow(() -> new EntityNotFoundException(ARTICLE_NOT_FOUND));
         return articleLikeRepository.countByArticle(article);
     }
 
@@ -220,7 +222,7 @@ public class ArticleService {
     @Transactional(readOnly = true)
     public List<Article> getLikedArticles(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다."));
+                .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
         List<ArticleLike> likes = articleLikeRepository.findAllByUser(user);
         return likes.stream().map(ArticleLike::getArticle).toList();
     }
@@ -229,9 +231,9 @@ public class ArticleService {
     @Transactional(readOnly = true)
     public boolean isArticleLikedByUser(Long articleId, Long userId) {
         Article article = articleRepository.findById(articleId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
+                .orElseThrow(() -> new EntityNotFoundException(ARTICLE_NOT_FOUND));
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다."));
+                .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
         return articleLikeRepository.findByArticleAndUser(article, user).isPresent();
     }
 
@@ -239,7 +241,7 @@ public class ArticleService {
     @Transactional(readOnly = true)
     public List<ArticleListResponse> getLikedArticleResponses(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다."));
+                .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
         List<ArticleLike> likes = articleLikeRepository.findAllByUser(user);
         return likes.stream().map(like -> {
             Article article = like.getArticle();

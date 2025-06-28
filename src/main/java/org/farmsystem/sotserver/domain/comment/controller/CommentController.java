@@ -2,6 +2,7 @@ package org.farmsystem.sotserver.domain.comment.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.farmsystem.sotserver.domain.comment.api.CommentApi;
 import org.farmsystem.sotserver.domain.comment.dto.CommentCreateRequest;
 import org.farmsystem.sotserver.domain.comment.dto.CommentResponse;
 import org.farmsystem.sotserver.domain.comment.service.CommentService;
@@ -12,13 +13,16 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("api/article/")
 @RequiredArgsConstructor
-public class CommentController {
+public class CommentController implements CommentApi {
 
     private final CommentService commentService;
 
+    @Override
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PostMapping("{articleId}/comments")
     public ResponseEntity<SuccessResponse<?>> createComment(
@@ -31,6 +35,27 @@ public class CommentController {
         return SuccessResponse.created(commentResponse);
     }
 
+    @Override
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @DeleteMapping("comments/{commentId}")
+    public ResponseEntity<SuccessResponse<?>> deleteComment(
+            @PathVariable Long commentId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        commentService.deleteComment(commentId, userDetails.getUserId());
+        return SuccessResponse.noContent();
+    }
+
+    @Override
+    @GetMapping("{articleId}/comments")
+    public ResponseEntity<SuccessResponse<?>> getComments(
+            @PathVariable Long articleId
+    ) {
+        List<CommentResponse> comments = commentService.getCommentsByArticle(articleId);
+        return SuccessResponse.ok(comments);
+    }
+
+    @Override
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PatchMapping("comments/{commentId}")
     public ResponseEntity<SuccessResponse<?>> updateComment(
@@ -39,18 +64,7 @@ public class CommentController {
             @RequestBody @Valid CommentCreateRequest request
     ) {
         Long userId = userDetails.getUserId();
-        CommentResponse commentResponse =  commentService.updateComment(commentId, userId, request);
+        CommentResponse commentResponse = commentService.updateComment(commentId, userId, request);
         return SuccessResponse.ok(commentResponse);
-    }
-
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    @DeleteMapping("comments/{commentId}")
-    //@PreAuthorize("hasRole('USER')")
-    public ResponseEntity<?> deleteComment(
-            @PathVariable Long commentId,
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
-        commentService.deleteComment(commentId, userDetails.getUserId());
-        return SuccessResponse.noContent();
     }
 }
