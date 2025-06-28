@@ -67,6 +67,7 @@ public enum ErrorCode {
     USER_ALREADY_EXISTS(HttpStatus.CONFLICT, "다른 소셜 계정으로 이미 가입된 사용자입니다."),
     INVALID_AUTH_CODE(HttpStatus.UNAUTHORIZED, "올바르지 않은 인증 코드입니다."),
     EMAIL_MISMATCH(HttpStatus.NOT_FOUND, "이메일이 일치하지 않습니다"),
+    ROLE_USER_ONLY(HttpStatus.FORBIDDEN, "이메일 인증이 완료되지 않았습니다."),
 
     /**
      * Article Error
