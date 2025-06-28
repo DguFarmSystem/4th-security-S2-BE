@@ -23,10 +23,19 @@ public class EmailAuthController {
     private final UserService userService;
 
     @PostMapping("/send")
-    public ResponseEntity<SuccessResponse<?>> sendEmailAuthCode(@RequestBody @Valid EmailRequestDTO request) {
+    public ResponseEntity<SuccessResponse<?>> sendEmailAuthCode(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody @Valid EmailRequestDTO request
+    ) {
+        // 이메일 업데이트
+        userService.updateEmail(userDetails.getUserId(), request.email());
+
+        // 이메일 인증 코드 발송
         mailService.sendEmailAuthCode(request.email());
+
         return SuccessResponse.ok("인증번호 전송 완료");
     }
+
 
     @PostMapping("/verify")
     public ResponseEntity<SuccessResponse<?>> verifyEmailCode(
