@@ -15,6 +15,7 @@ import org.farmsystem.sotserver.domain.user.entity.Role;
 import org.farmsystem.sotserver.domain.user.entity.User;
 import org.farmsystem.sotserver.domain.user.repository.UserRepository;
 import org.farmsystem.sotserver.global.config.auth.jwt.JwtProvider;
+import org.farmsystem.sotserver.global.error.ErrorCode;
 import org.farmsystem.sotserver.global.error.exception.BusinessException;
 import org.farmsystem.sotserver.global.error.exception.EntityNotFoundException;
 import org.farmsystem.sotserver.global.s3.S3Uploader;
@@ -93,4 +94,23 @@ public class UserService {
                 .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
         return MyProfileResponseDTO.from(user);
     }
+
+    // 이메일 인증
+    @Transactional
+    public void verifyUserEmail(Long userId, String email) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
+
+        if (!email.equals(user.getEmail())) {throw new BusinessException(ErrorCode.EMAIL_MISMATCH);}
+        user.updateRole(Role.ROLE_USER);
+    }
+
+    // 이메일 수정
+    @Transactional
+    public void updateEmail(Long userId, String email) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
+        user.updateEmail(email);
+    }
+
 }
