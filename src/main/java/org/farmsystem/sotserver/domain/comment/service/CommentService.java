@@ -9,6 +9,10 @@ import org.farmsystem.sotserver.domain.comment.entity.Comment;
 import org.farmsystem.sotserver.domain.comment.repository.CommentRepository;
 import org.farmsystem.sotserver.domain.user.entity.User;
 import org.farmsystem.sotserver.domain.user.repository.UserRepository;
+import org.farmsystem.sotserver.global.error.exception.EntityNotFoundException;
+import org.farmsystem.sotserver.global.error.exception.ForbiddenException;
+
+import static org.farmsystem.sotserver.global.error.ErrorCode.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,9 +29,9 @@ public class CommentService {
     @Transactional
     public CommentResponse createComment(Long articleId, Long userId, CommentCreateRequest request) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저가 없습니다"));
+                .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
         Article article = articleRepository.findById(articleId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 없습니다"));
+                .orElseThrow(() -> new EntityNotFoundException(ARTICLE_NOT_FOUND));
 
         Comment comment = Comment.builder()
                 .content(request.getContent())
@@ -42,11 +46,11 @@ public class CommentService {
     @Transactional
     public CommentResponse updateComment(Long commentId, Long userId, CommentCreateRequest request) {
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("댓글이 없습니다."));
+                .orElseThrow(() -> new EntityNotFoundException(COMMENT_NOT_FOUND));
 
         if(!comment.getUser().getUserId().equals(userId))
         {
-            throw new SecurityException("본인만 댓글을 수정할 수 있습니다.");
+            throw new ForbiddenException(COMMENT_AUTHOR_ONLY_ACTION);
         }
 
         comment.updateComment(request.getContent());
@@ -65,9 +69,9 @@ public class CommentService {
     @Transactional
     public void deleteComment(Long commentId, Long userId) {
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("댓글이 없습니다"));
+                .orElseThrow(() -> new EntityNotFoundException(COMMENT_NOT_FOUND));
         if (!comment.getUser().getUserId().equals(userId)) {
-            throw new SecurityException("본인만 댓글을 삭제할 수 있습니다");
+            throw new ForbiddenException(COMMENT_AUTHOR_ONLY_ACTION);
         }
         commentRepository.delete(comment);
     }

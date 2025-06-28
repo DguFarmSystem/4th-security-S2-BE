@@ -34,6 +34,9 @@ public enum ErrorCode {
      * 404 Not Found
      */
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 리소스를 찾을 수 없습니다."),
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 유저를 찾을 수 없습니다."),
+    ARTICLE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 게시글을 찾을 수 없습니다."),
+    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 댓글을 찾을 수 없습니다."),
     ENTITY_NOT_FOUND(HttpStatus.NOT_FOUND, "엔티티를 찾을 수 없습니다."),
 
     /**
@@ -44,6 +47,7 @@ public enum ErrorCode {
     /**
      * 409 Conflict
      */
+    ALREADY_LIKED_ARTICLE(HttpStatus.CONFLICT, "이미 좋아요를 누른 게시글입니다."),
     CONFLICT(HttpStatus.CONFLICT, "이미 존재하는 리소스입니다."),
 
     /**
@@ -63,7 +67,6 @@ public enum ErrorCode {
      * User Error
      */
     AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "사용자 인증에 실패하였습니다."),
-    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
     USER_ALREADY_EXISTS(HttpStatus.CONFLICT, "다른 소셜 계정으로 이미 가입된 사용자입니다."),
     INVALID_AUTH_CODE(HttpStatus.UNAUTHORIZED, "올바르지 않은 인증 코드입니다."),
     EMAIL_MISMATCH(HttpStatus.NOT_FOUND, "이메일이 일치하지 않습니다"),
@@ -72,9 +75,13 @@ public enum ErrorCode {
     /**
      * Article Error
      */
-    ARTICLE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 게시글을 찾을 수 없습니다."),
     ARTICLE_AUTHOR_ONLY_ACTION(HttpStatus.FORBIDDEN, "게시글 작성자만 수행할 수 있는 작업입니다."),
     ARTICLE_FORM_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 해당 게시물에 대한 질문폼이 존재합니다."),
+
+    /**
+     * Comment Error
+     */
+    COMMENT_AUTHOR_ONLY_ACTION(HttpStatus.FORBIDDEN, "댓글 작성자만 수행할 수 있는 작업입니다."),
 
     /**
      * Form Error

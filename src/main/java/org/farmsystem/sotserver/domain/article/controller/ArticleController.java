@@ -2,6 +2,7 @@ package org.farmsystem.sotserver.domain.article.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.farmsystem.sotserver.domain.article.api.ArticleApi;
 import org.farmsystem.sotserver.domain.article.dto.request.ArticleCreateRequest;
 import org.farmsystem.sotserver.domain.article.dto.request.ArticleStatusRequest;
 import org.farmsystem.sotserver.domain.article.dto.response.ArticleCreateResponse;
@@ -26,10 +27,11 @@ import java.util.List;
 @RestController
 @RequestMapping("api/article")
 @RequiredArgsConstructor
-public class ArticleController {
+public class ArticleController implements ArticleApi {
 
     private final ArticleService articleService;
 
+    @Override
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<SuccessResponse<?>> createArticle(
@@ -42,6 +44,7 @@ public class ArticleController {
         return SuccessResponse.created(response);
     }
 
+    @Override
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PatchMapping(value = "/{articleId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<SuccessResponse<?>> updateArticle(
@@ -55,6 +58,7 @@ public class ArticleController {
         return SuccessResponse.ok(response);
     }
 
+    @Override
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PatchMapping("/{articleId}/status")
     public ResponseEntity<SuccessResponse<?>> changeStatus(
@@ -67,6 +71,7 @@ public class ArticleController {
         return SuccessResponse.ok(response);
     }
 
+    @Override
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @DeleteMapping("/{articleId}")
     public ResponseEntity<SuccessResponse<?>> deleteArticle(
@@ -78,7 +83,7 @@ public class ArticleController {
         return SuccessResponse.noContent(); // ✅ 204 No Content
     }
 
-    // 좋아요 정보 포함: 인증된 사용자만 userId 전달, 비로그인 시 null
+    @Override
     @GetMapping
     public ResponseEntity<SuccessResponse<?>> getArticles(
             @PageableDefault(size = 10, sort = "articleId", direction = Sort.Direction.DESC) Pageable pageable,
@@ -88,6 +93,7 @@ public class ArticleController {
         return SuccessResponse.ok(articles);
     }
 
+    @Override
     @GetMapping("/{articleId}")
     public ResponseEntity<SuccessResponse<?>> getArticle(
             @PathVariable Long articleId,
@@ -97,7 +103,7 @@ public class ArticleController {
         return SuccessResponse.ok(response);
     }
 
-    // 게시글 좋아요
+    @Override
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PostMapping("/{articleId}/like")
     public ResponseEntity<SuccessResponse<?>> likeArticle(
@@ -107,7 +113,7 @@ public class ArticleController {
         return SuccessResponse.ok(null);
     }
 
-    // 게시글 좋아요 취소
+    @Override
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @DeleteMapping("/{articleId}/like")
     public ResponseEntity<SuccessResponse<?>> unlikeArticle(
@@ -117,7 +123,7 @@ public class ArticleController {
         return SuccessResponse.ok(null);
     }
 
-    // 내가 좋아요한 게시글 목록
+    @Override
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @GetMapping("/liked")
     public ResponseEntity<SuccessResponse<?>> getLikedArticles(
