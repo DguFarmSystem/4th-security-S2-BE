@@ -18,6 +18,7 @@ import org.farmsystem.sotserver.global.config.auth.jwt.JwtProvider;
 import org.farmsystem.sotserver.global.error.ErrorCode;
 import org.farmsystem.sotserver.global.error.exception.BusinessException;
 import org.farmsystem.sotserver.global.error.exception.EntityNotFoundException;
+import org.farmsystem.sotserver.global.error.exception.UnauthorizedException;
 import org.farmsystem.sotserver.global.s3.S3Uploader;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -111,6 +112,19 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
         user.updateEmail(email);
+    }
+
+    // 닉네임 수정 (회원가입 시)
+    @Transactional
+    public void updateNickname(Long userId, String newNickname) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
+
+        if (!user.getRole().equals(Role.ROLE_USER)) {
+            throw new UnauthorizedException(ErrorCode.ROLE_USER_ONLY);
+        }
+
+        user.updateNickname(newNickname);
     }
 
 }

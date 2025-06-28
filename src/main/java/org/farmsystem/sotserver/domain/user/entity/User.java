@@ -46,6 +46,8 @@ public class User {
     public void updateTalents(String talents) {this.talents = talents;}
     public void updateRole(Role newRole) {this.role = newRole;}
     public void updateEmail(String email) {this.email = email;}
+    public void updateNickname(String nickname) {this.nickname = nickname;}
+
 
     // 스트링 파싱 -> 리스트
     public List<String> getParsedList(String value) {
