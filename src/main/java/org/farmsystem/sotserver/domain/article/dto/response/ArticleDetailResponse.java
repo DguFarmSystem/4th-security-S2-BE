@@ -27,6 +27,11 @@ public class ArticleDetailResponse {
     // 댓글 정보 필드 추가
     private List<CommentResponse> comments;
 
+    // 좋아요 개수
+    private Long likeCount;
+    // 본인 좋아요 여부
+    private Boolean isLiked;
+
     public static ArticleDetailResponse from(Article article, S3Uploader s3Uploader, List<CommentResponse> comments) {
         return ArticleDetailResponse.builder()
                 .id(article.getArticleId())
@@ -40,6 +45,24 @@ public class ArticleDetailResponse {
                         .map(img -> s3Uploader.getFileUrl(img.getKey()))
                         .toList())
                 .comments(comments)
+                .build();
+    }
+
+    public static ArticleDetailResponse from(Article article, S3Uploader s3Uploader, List<CommentResponse> comments, Long likeCount, Boolean isLiked) {
+        return ArticleDetailResponse.builder()
+                .id(article.getArticleId())
+                .title(article.getTitle())
+                .content(article.getContent())
+                .userId(article.getAuthor().getUserId())
+                .status(article.getStatus())
+                .createAt(article.getCreatedAt())
+                .updateAt(article.getUpdatedAt())
+                .imageUrls(article.getImages().stream()
+                        .map(img -> s3Uploader.getFileUrl(img.getKey()))
+                        .toList())
+                .comments(comments)
+                .likeCount(likeCount)
+                .isLiked(isLiked)
                 .build();
     }
 }

@@ -8,8 +8,10 @@ import org.farmsystem.sotserver.domain.article.dto.response.ArticleDetailRespons
 import org.farmsystem.sotserver.domain.article.dto.response.ArticleListResponse;
 import org.farmsystem.sotserver.domain.article.dto.response.MyArticleResponseDTO;
 import org.farmsystem.sotserver.domain.article.entity.Article;
+import org.farmsystem.sotserver.domain.article.entity.ArticleLike;
 import org.farmsystem.sotserver.domain.article.entity.ArticleStatus;
 import org.farmsystem.sotserver.domain.article.entity.Image;
+import org.farmsystem.sotserver.domain.article.repository.ArticleLikeRepository;
 import org.farmsystem.sotserver.domain.article.repository.ArticleRepository;
 import org.farmsystem.sotserver.domain.article.repository.ImageRepository;
 import org.farmsystem.sotserver.domain.comment.dto.CommentResponse;
@@ -42,6 +44,7 @@ public class ArticleService {
     private final ImageRepository imageRepository;
     private final S3Uploader s3Uploader;
     private final CommentRepository commentRepository;
+    private final ArticleLikeRepository articleLikeRepository;
 
     public ArticleCreateResponse createArticle(Long userId, List<MultipartFile> images, ArticleCreateRequest request){
         User user = userRepository.findById(userId)
@@ -118,26 +121,29 @@ public class ArticleService {
         articleRepository.delete(article);
     }
 
+    // userId를 받아 좋아요 정보 포함하여 반환하도록 수정
     @Transactional(readOnly = true)
-    public ArticleDetailResponse getArticle(Long articleId){
+    public ArticleDetailResponse getArticle(Long articleId, Long userId){
         Article article = articleRepository.findById(articleId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
-
-        //댓글 가져오기
         List<Comment> commentList = commentRepository.findByArticle_ArticleId(articleId);
         List<CommentResponse> commentResponses = commentList.stream()
                 .map(CommentResponse::from)
                 .toList();
-
-        return ArticleDetailResponse.from(article, s3Uploader, commentResponses);
+        Long likeCount = articleLikeRepository.countByArticle(article);
+        Boolean isLiked = (userId != null) ? articleLikeRepository.findByArticleAndUser(article, userRepository.findById(userId).orElse(null)).isPresent() : false;
+        return ArticleDetailResponse.from(article, s3Uploader, commentResponses, likeCount, isLiked);
     }
 
+    // userId를 받아 좋아요 정보 포함하여 반환하도록 수정
     @Transactional(readOnly = true)
-    public Page<ArticleListResponse> getArticles(Pageable pageable){
+    public Page<ArticleListResponse> getArticles(Pageable pageable, Long userId){
         Page<Article> page = articleRepository.findAll(pageable);
         return page.map(article -> {
             int commentCount = commentRepository.countByArticle_ArticleId(article.getArticleId());
-            return ArticleListResponse.from(article, s3Uploader, commentCount);
+            Long likeCount = articleLikeRepository.countByArticle(article);
+            Boolean isLiked = (userId != null) ? articleLikeRepository.findByArticleAndUser(article, userRepository.findById(userId).orElse(null)).isPresent() : false;
+            return ArticleListResponse.from(article, s3Uploader, commentCount, likeCount, isLiked);
         });
     }
 
@@ -178,4 +184,74 @@ public class ArticleService {
                 .anyMatch(answerForm -> answerForm.getFormStatus() == FormStatus.APPROVED);
     }
 
+    // 좋아요 등록
+    @Transactional
+    public void likeArticle(Long articleId, Long userId) {
+        Article article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다."));
+        if (articleLikeRepository.findByArticleAndUser(article, user).isPresent()) {
+            throw new IllegalStateException("이미 좋아요를 누른 게시글입니다.");
+        }
+        ArticleLike like = ArticleLike.builder().article(article).user(user).build();
+        articleLikeRepository.save(like);
+    }
+
+    // 좋아요 취소
+    @Transactional
+    public void unlikeArticle(Long articleId, Long userId) {
+        Article article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다."));
+        articleLikeRepository.deleteByArticleAndUser(article, user);
+    }
+
+    // 게시글의 좋아요 개수 반환
+    @Transactional(readOnly = true)
+    public Long getLikeCount(Long articleId) {
+        Article article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
+        return articleLikeRepository.countByArticle(article);
+    }
+
+    // 사용자가 좋아요한 게시글 목록 반환
+    @Transactional(readOnly = true)
+    public List<Article> getLikedArticles(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다."));
+        List<ArticleLike> likes = articleLikeRepository.findAllByUser(user);
+        return likes.stream().map(ArticleLike::getArticle).toList();
+    }
+
+    // 사용자가 해당 게시글에 좋아요를 눌렀는지 여부
+    @Transactional(readOnly = true)
+    public boolean isArticleLikedByUser(Long articleId, Long userId) {
+        Article article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다."));
+        return articleLikeRepository.findByArticleAndUser(article, user).isPresent();
+    }
+
+    // 내가 좋아요한 게시글 목록을 ArticleListResponse로 반환
+    @Transactional(readOnly = true)
+    public List<ArticleListResponse> getLikedArticleResponses(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다."));
+        List<ArticleLike> likes = articleLikeRepository.findAllByUser(user);
+        return likes.stream().map(like -> {
+            Article article = like.getArticle();
+            int commentCount = commentRepository.countByArticle_ArticleId(article.getArticleId());
+            Long likeCount = articleLikeRepository.countByArticle(article);
+            return ArticleListResponse.from(
+                    article,
+                    s3Uploader,
+                    commentCount,
+                    likeCount,
+                    true
+            );
+        }).toList();
+    }
 }
