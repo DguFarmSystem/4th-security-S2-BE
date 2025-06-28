@@ -26,9 +26,11 @@ public class ExceptionHandlerFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } catch (UnauthorizedException e) {
             handleUnauthorizedException(response, e);
-        } catch (Exception ee) {
+        } catch (Exception e) {
+            log.error("Unhandled exception in filter: {}", e.getMessage(), e);
             handleException(response);
         }
+
     }
 
     private void handleUnauthorizedException(HttpServletResponse response, Exception e) throws IOException {
