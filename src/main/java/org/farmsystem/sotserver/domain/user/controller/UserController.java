@@ -2,9 +2,11 @@ package org.farmsystem.sotserver.domain.user.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.farmsystem.sotserver.domain.user.dto.request.ProfileUpdateRequestDTO;
+import org.farmsystem.sotserver.domain.user.dto.request.UpdateNicknameRequest;
 import org.farmsystem.sotserver.domain.user.dto.response.MypageResponseDTO;
 import org.farmsystem.sotserver.domain.user.service.UserService;
 import org.farmsystem.sotserver.global.common.SuccessResponse;
+import org.farmsystem.sotserver.global.config.auth.CustomUserDetails;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +34,14 @@ public class UserController {
             @ModelAttribute ProfileUpdateRequestDTO profileUpdateRequest
     ) {
         userService.updateProfile(userId, profileUpdateRequest);
+        return SuccessResponse.ok(null);
+    }
+
+    // 닉네임 수정 (최초 회원가입 시에도 사용)
+    @PatchMapping("/nickname")
+    public ResponseEntity<SuccessResponse<?>> updateNickname(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                                @RequestBody UpdateNicknameRequest request) {
+        userService.updateNickname(userDetails.getUserId(), request.nickname());
         return SuccessResponse.ok(null);
     }
 }
