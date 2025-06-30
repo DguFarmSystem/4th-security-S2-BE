@@ -28,7 +28,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        final String accessToken = getAccessTokenFromHttpServletRequest(request);
+        String accessToken = request.getHeader(AUTHORIZATION);
+
+        // Authorization 헤더가 없거나 Bearer 토큰이 아니면 인증 절차 없이 다음 필터로 이동
+        if (!StringUtils.hasText(accessToken) || !accessToken.startsWith(BEARER)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // Bearer 접두사 제거
+        accessToken = accessToken.substring(BEARER.length());
+
+
         jwtProvider.validateAccessToken(accessToken);
         final Long userId = jwtProvider.getSubject(accessToken);
         setAuthentication(request, userId);
